@@ -37,6 +37,7 @@ ENV/
 
 # Model checkpoints
 *.pt
+!models/checkpoints/bert_crf/best_model.pt
 *.pth
 *.bin
 

@@ -94,17 +94,7 @@ with st.spinner("Initializing NLP Engine..."):
     predictor, pdf_processor, system_active = load_system()
 
 if not system_active:
-    st.warning("⚠️ **Model Weights Not Found (Cloud Environment)**")
-    st.info("""
-    **Note for Reviewers:** This application is correctly deployed, but the **700MB+ Transformer weights** are excluded from this GitHub repository to comply with standard hosting limits.
-    
-    **To run full inference:**
-    1. Clone the repository locally.
-    2. Follow the setup in `README.md`.
-    3. Run the training script or place the weights in `models/checkpoints/`.
-    
-    *The UI components and logic are fully functional and ready for local execution.*
-    """)
+    st.error("❌ NLP Engine failed to initialize. Please check model weights.")
     st.stop()
 
 # Examples
