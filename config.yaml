@@ -1,0 +1,56 @@
+# Global Project Configuration
+
+paths:
+  raw_data_dir: "data/raw"
+  processed_data_dir: "data/processed"
+  models_dir: "models"
+  checkpoints_dir: "models/checkpoints"
+  logs_dir: "logs"
+  mlflow_tracking_uri: "mlruns"
+
+dataset:
+  total_sentences: 10000
+  split_ratios:
+    train: 0.8
+    val: 0.1
+    test: 0.1
+  random_seed: 42
+  augmentation: false
+
+labels:
+  label2id:
+    "O": 0
+    "B-NAME": 1
+    "I-NAME": 2
+    "B-EMAIL": 3
+    "I-EMAIL": 4
+    "B-LOCATION": 5
+    "I-LOCATION": 6
+    "B-DATE": 7
+    "I-DATE": 8
+    "B-DEGREE": 9
+    "I-DEGREE": 10
+    "B-SKILL": 11
+    "I-SKILL": 12
+    "B-EXPERIENCE": 13
+    "I-EXPERIENCE": 14
+
+model:
+  model_name: "bert-base-multilingual-cased"
+  max_seq_length: 128
+  num_labels: 15
+
+training:
+  batch_size: 16
+  learning_rate: 3e-5
+  weight_decay: 0.01
+  num_epochs: 15
+  warmup_steps: 1000
+  dropout: 0.1
+  device: "cuda"
+  early_stopping_patience: 5
+  checkpoint_frequency: 1
+
+mlflow:
+  experiment_name: "Resume_NER_Upgrade"
+  run_name: "BERT_Multilingual_7Labels"

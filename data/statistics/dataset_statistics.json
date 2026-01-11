@@ -1,0 +1,21 @@
+{
+  "total_sentences": 4000,
+  "total_tokens": 36945,
+  "entity_tokens": 18985,
+  "non_entity_tokens": 17960,
+  "tag_distribution": {
+    "B-DEGREE": 3504,
+    "I-DEGREE": 2260,
+    "O": 17960,
+    "B-SKILL": 5530,
+    "B-EXPERIENCE": 3182,
+    "I-EXPERIENCE": 3396,
+    "I-SKILL": 1113
+  },
+  "entity_counts": {
+    "SKILL": 5530,
+    "DEGREE": 3504,
+    "EXPERIENCE": 3182
+  },
+  "avg_tokens_per_sentence": 9.23625
+}
