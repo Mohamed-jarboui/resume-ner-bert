@@ -56,49 +56,25 @@ st.markdown("""
 if 'visualizer' not in st.session_state:
     st.session_state.visualizer = EntityVisualizer()
 
-def load_system():
-    # Attempt to find the hybrid CRF model first, then fall back to the base model
-    crf_path = project_root / "models/checkpoints/bert_crf/best_model.pt"
-    base_path = project_root / "models/checkpoints/bert/best_model.pt"
+def load_system(use_ocr=False):
+    checkpoint_path = project_root / "models/checkpoints/bert/best_model.pt"
+    mappings_path = project_root / "models/checkpoints/bert/label_mappings.json"
     
-    checkpoint_path = crf_path if crf_path.exists() else base_path
-    mappings_path = project_root / "models/checkpoints/bert_crf/label_mappings.json"
+    # Load Predictor
+    predictor = ResumeNERPredictor(
+        model_path=str(checkpoint_path),
+        label_mappings_path=str(mappings_path),
+        model_name="bert-base-multilingual-cased"
+    )
     
-    if not mappings_path.exists():
-        mappings_path = project_root / "models/checkpoints/bert/label_mappings.json"
+    # Load PDF Processor
+    pdf_processor = PDFResumeProcessor(
+        model_path=str(checkpoint_path),
+        label_mappings_path=str(mappings_path),
+        use_ocr=use_ocr
+    )
     
-    # Check if weights exist (usually not on Streamlit Cloud due to size)
-    if not checkpoint_path.exists():
-        return None, None, False
-    
-    try:
-        # Load Predictor
-        predictor = ResumeNERPredictor(
-            model_path=str(checkpoint_path),
-            label_mappings_path=str(mappings_path),
-            model_name="bert-base-multilingual-cased"
-        )
-        # Load PDF Processor
-        pdf_processor = PDFResumeProcessor(
-            model_path=str(checkpoint_path),
-            label_mappings_path=str(mappings_path)
-        )
-        return predictor, pdf_processor, True
-    except Exception as e:
-        st.error(f"Error loading model weights: {e}")
-        return None, None, False
-
-# Interface Header
-st.markdown('<div class="main-header">Resume NER - Advanced Parser 🚀</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-header">Phase 6: Enterprise-Grade BERT+CRF Structural Analysis</div>', unsafe_allow_html=True)
-
-# Load the system
-with st.spinner("Initializing NLP Engine..."):
-    predictor, pdf_processor, system_active = load_system()
-
-if not system_active:
-    st.error("❌ NLP Engine failed to initialize. Please check model weights.")
-    st.stop()
+    return predictor, pdf_processor
 
 # Examples
 EXAMPLES = {
@@ -122,7 +98,7 @@ with st.sidebar:
     if st.button("🔄 Initialize System", type="primary", use_container_width=True):
         with st.spinner("Loading Multilingual BERT..."):
             try:
-                p, pdf = load_system()
+                p, pdf = load_system(use_ocr=use_ocr)
                 st.session_state.predictor = p
                 st.session_state.pdf_processor = pdf
                 st.success("System Ready!")
@@ -132,6 +108,12 @@ with st.sidebar:
     st.divider()
     input_mode = st.radio("Select Input Method", ["Text Input", "PDF Upload"])
     
+    use_ocr = False
+    if input_mode == "PDF Upload":
+        use_ocr = st.checkbox("Enable OCR (Scanned PDFs)", value=False)
+        if use_ocr:
+            st.info("💡 Make sure Tesseract-OCR is installed on your system.")
+
     st.divider()
     st.info("💡 **Tip**: This model is trained to distinguish between Skills and Names/Locations.")
 

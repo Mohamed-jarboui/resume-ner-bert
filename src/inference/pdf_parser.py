@@ -147,7 +147,7 @@ class PDFTextExtractor:
             try:
                 text = self.extract_with_pdfplumber(str(pdf_path))
                 # Check if we got meaningful text
-                if len(text.strip()) > 100:
+                if len(text.strip()) > 20:
                     return self.clean_text(text)
             except Exception as e:
                 print(f"pdfplumber failed: {e}")
@@ -156,7 +156,7 @@ class PDFTextExtractor:
         if method in ["auto", "pymupdf"]:
             try:
                 text = self.extract_with_pymupdf(str(pdf_path))
-                if len(text.strip()) > 100:
+                if len(text.strip()) > 20:
                     return self.clean_text(text)
             except Exception as e:
                 print(f"PyMuPDF failed: {e}")
