@@ -79,7 +79,10 @@ def load_system():
             model_name="bert-base-multilingual-cased"
         )
         # Load PDF Processor
-        pdf_processor = PDFResumeProcessor()
+        pdf_processor = PDFResumeProcessor(
+            model_path=str(checkpoint_path),
+            label_mappings_path=str(mappings_path)
+        )
         return predictor, pdf_processor, True
     except Exception as e:
         st.error(f"Error loading model weights: {e}")
