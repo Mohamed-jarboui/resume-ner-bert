@@ -30,15 +30,15 @@ def main():
     parser.add_argument(
         "--model",
         type=str,
-        default=str(project_root / "models/checkpoints/bert/best_model.pt"),
-        help="Path to trained model (default: models/checkpoints/bert/best_model.pt)"
+        default=str(project_root / "models/checkpoints/bert_crf/best_model.pt"),
+        help="Path to trained model (default: models/checkpoints/bert_crf/best_model.pt)"
     )
     
     parser.add_argument(
         "--mappings",
         type=str,
-        default=str(project_root / "models/checkpoints/bert/label_mappings.json"),
-        help="Path to label mappings (default: models/checkpoints/bert/label_mappings.json)"
+        default=str(project_root / "models/checkpoints/bert_crf/label_mappings.json"),
+        help="Path to label mappings (default: models/checkpoints/bert_crf/label_mappings.json)"
     )
     
     parser.add_argument(

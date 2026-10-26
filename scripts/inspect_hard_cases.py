@@ -9,7 +9,7 @@ sys.path.append(str(project_root))
 
 from src.inference.predictor import ResumeNERPredictor
 
-def test_hard_cases(model_path: str, mappings_path: str, data_path: str):
+def inspect_hard_cases(model_path: str, mappings_path: str, data_path: str):
     print(f"Testing model: {Path(model_path).parent.name}")
     predictor = ResumeNERPredictor(
         model_path=model_path,
@@ -39,18 +39,18 @@ def test_hard_cases(model_path: str, mappings_path: str, data_path: str):
         print("-" * 40)
 
 if __name__ == "__main__":
-    baseline_path = project_root / "models/checkpoints/bert/final_model.pt"
+    baseline_path = project_root / "models/checkpoints/bert/best_model.pt"
     baseline_mappings = project_root / "models/checkpoints/bert/label_mappings.json"
-    crf_path = project_root / "models/checkpoints/bert_crf/final_model.pt"
+    crf_path = project_root / "models/checkpoints/bert_crf/best_model.pt"
     crf_mappings = project_root / "models/checkpoints/bert_crf/label_mappings.json"
     data_path = project_root / "data/raw/manual_examples.json"
     
     if baseline_path.exists():
         print("\n=== BASELINE EVALUATION ===")
-        test_hard_cases(str(baseline_path), str(baseline_mappings), str(data_path))
+        inspect_hard_cases(str(baseline_path), str(baseline_mappings), str(data_path))
         
     if crf_path.exists():
         print("\n=== CRF EVALUATION ===")
-        test_hard_cases(str(crf_path), str(crf_mappings), str(data_path))
+        inspect_hard_cases(str(crf_path), str(crf_mappings), str(data_path))
     else:
         print("\n[INFO] CRF model not found. Still training?")

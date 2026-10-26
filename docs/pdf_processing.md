@@ -2,7 +2,7 @@
 
 ## 📄 Overview
 
-The system now supports **direct PDF resume processing** with automatic text extraction and entity recognition. Process resumes from PDF files using multiple methods:
+The system supports **direct PDF resume processing** with automatic text extraction and entity recognition. Process resumes from PDF files using multiple methods:
 
 1. **Command-Line Interface** - Batch processing
 2. **Streamlit Web UI** - Interactive upload
@@ -114,8 +114,8 @@ from src.inference.pdf_processor import PDFResumeProcessor
 
 # Initialize processor
 processor = PDFResumeProcessor(
-    model_path="models/checkpoints/bert/best_model.pt",
-    label_mappings_path="models/checkpoints/bert/label_mappings.json",
+    model_path="models/checkpoints/bert_crf/best_model.pt",
+    label_mappings_path="models/checkpoints/bert_crf/label_mappings.json",
     use_ocr=False  # Set to True for scanned PDFs
 )
 
@@ -375,8 +375,8 @@ metadata = extractor.extract_metadata("resume.pdf")
 from src.inference.pdf_processor import PDFResumeProcessor
 
 processor = PDFResumeProcessor(
-    model_path="models/checkpoints/bert/best_model.pt",
-    label_mappings_path="models/checkpoints/bert/label_mappings.json",
+    model_path="models/checkpoints/bert_crf/best_model.pt",
+    label_mappings_path="models/checkpoints/bert_crf/label_mappings.json",
     use_ocr=False
 )
 
@@ -386,20 +386,3 @@ processor.export_to_csv(result, "output.csv")
 processor.export_summary(result, "summary.txt")
 html = processor.create_highlighted_resume(result)
 ```
-
----
-
-## ✅ Checklist for Production Use
-
-- [x] Install required dependencies
-- [x] Train BERT model
-- [ ] Set up OCR (if needed for scanned PDFs)
-- [ ] Test with sample PDFs
-- [ ] Configure output directories
-- [ ] Set up batch processing scripts
-- [ ] Create backup of trained models
-- [ ] Document API usage for team
-
----
-
-**The PDF processing system is now fully integrated and ready for use!** 🎉

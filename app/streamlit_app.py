@@ -57,8 +57,8 @@ if 'visualizer' not in st.session_state:
     st.session_state.visualizer = EntityVisualizer()
 
 def load_system(use_ocr=False):
-    checkpoint_path = project_root / "models/checkpoints/bert/best_model.pt"
-    mappings_path = project_root / "models/checkpoints/bert/label_mappings.json"
+    checkpoint_path = project_root / "models/checkpoints/bert_crf/best_model.pt"
+    mappings_path = project_root / "models/checkpoints/bert_crf/label_mappings.json"
     
     # Load Predictor
     predictor = ResumeNERPredictor(

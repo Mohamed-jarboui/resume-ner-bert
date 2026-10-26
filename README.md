@@ -1,234 +1,149 @@
-# Resume NER System - Smart Keyword Extraction Using BERT
+# Resume NER – Entity Extraction from CVs with BERT + CRF
 
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)](https://pytorch.org/)
-[![Transformers](https://img.shields.io/badge/🤗-Transformers-yellow.svg)](https://huggingface.co/transformers/)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Tests](https://github.com/Mohamed-jarboui/resume-ner-bert/actions/workflows/tests.yml/badge.svg)](https://github.com/Mohamed-jarboui/resume-ner-bert/actions/workflows/tests.yml)
+![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
+![PyTorch](https://img.shields.io/badge/PyTorch-2.x-EE4C2C)
+![Transformers](https://img.shields.io/badge/HuggingFace-Transformers-FFD21E)
 
-## 📋 Project Overview
+Extracts structured information from resumes (PDF or text, English and French): **names, emails, locations, dates, degrees, skills and job experience**. A fine-tuned multilingual BERT with a CRF layer tags each token; rule-based post-processing cleans the output into JSON. It comes with a PDF pipeline (including OCR for scanned files), a Streamlit interface and a feedback loop for corrections.
 
-This project implements an **end-to-end Named Entity Recognition (NER) system** for automatically extracting key information from resumes using state-of-the-art BERT models. The system identifies and classifies three main entity types:
+Built as an NLP course project at École Polytechnique de Sousse.
 
-- **Skills** (technical, soft skills, tools)
-- **Degrees** (education qualifications)
-- **Experience** (work experience, roles)
-- **Personal Info** (Names, Emails, Locations, Dates)
+## How it works
 
-### Key Features
-
-✅ **CRF Integration**: Conditional Random Field layer for sequence dependency logic  
-✅ **Hybrid Data**: 9,000 samples blending synthetic data with real-world "Hard Cases"  
-✅ **Section Intelligence**: Automatic segmentation of resumes into Experience, Education, etc.  
-✅ **Human-in-the-Loop**: UI feedback mechanism to save and retrain on user corrections  
-✅ **BERT Fine-Tuning**: bert-base-multilingual-cased for cross-language robustness  
-✅ **Interactive UI**: Advanced Streamlit dashboard with entity highlighting and tabular views  
-✅ **MLflow Tracking**: Complete experiment history and metric visualization
-
-## 🏗️ Project Structure
-
-```
-resume-ner-system/
-├── data/                          # Dataset files
-│   ├── raw/                       # Generated annotated data (JSON, CSV, CoNLL)
-│   ├── processed/                 # Tokenized data
-│   └── statistics/                # Dataset analysis
-├── models/checkpoints/            # Saved model weights
-│   └── bert/
-│       ├── best_model.pt
-│       └── label_mappings.json
-├── src/                           # Source code
-│   ├── data_generation/           # Dataset generation
-│   │   ├── templates.py
-│   │   ├── generator.py
-│   │   └── augmentation.py
-│   ├── preprocessing/             # Data preprocessing
-│   │   ├── tokenizer.py
-│   │   └── dataset.py
-│   ├── models/                    # Model architectures
-│   │   ├── bert_model.py
-│   │   └── bilstm_model.py
-│   ├── training/                  # Training infrastructure
-│   │   ├── config.py
-│   │   └── trainer.py
-│   ├── evaluation/                # Metrics and analysis
-│   │   ├── metrics.py
-│   │   └── analysis.py
-│   └── inference/                 # Prediction and visualization
-│       ├── predictor.py
-│       └── visualizer.py
-├── app/                           # Streamlit application
-│   └── streamlit_app.py
-├── scripts/                       # Executable scripts
-│   ├── generate_dataset.py
-│   ├── train_bert.py
-│   └── train_baseline.py
-├── notebooks/                     # Jupyter notebooks
-├── config.yaml                    # Configuration file
-├── requirements.txt               # Python dependencies
-└── README.md
+```mermaid
+flowchart LR
+    A[PDF / text resume] --> B[Text extraction<br/>pdfplumber, PyMuPDF,<br/>Tesseract OCR]
+    B --> C[Section detection<br/>Education, Experience, Skills...]
+    C --> D[mBERT + CRF<br/>token tagging]
+    D --> E[Post-processing<br/>filters + deduplication]
+    E --> F[Structured JSON]
+    F --> G[Streamlit UI<br/>highlighting, tables]
+    G -->|user corrections| H[(feedback file)]
 ```
 
-## 🚀 Quick Start
+**Entities (BIO tagging, 15 labels):**
 
-### 1. Installation
+| Entity | Examples |
+|---|---|
+| `NAME` | Sarah Johnson |
+| `EMAIL` | s.johnson@gmail.com |
+| `LOCATION` | Paris, France |
+| `DATE` | 2020 - 2024 |
+| `DEGREE` | Master of Science in Data Science, MIT |
+| `SKILL` | Python, Docker, Power BI |
+| `EXPERIENCE` | Data Scientist, Google |
+
+## Model
+
+- **Encoder:** `bert-base-multilingual-cased`, chosen so that French and English resumes work with one model
+- **Head:** linear projection to tag emissions + **CRF layer** (`pytorch-crf`), which learns valid tag transitions (e.g. `I-SKILL` cannot follow `B-DEGREE`)
+- **Subword alignment:** only the first subword of each word carries the label; the rest are ignored in the loss
+- **Training:** AdamW, learning rate 5e-5, batch size 16, linear warmup, up to 10 epochs with early stopping on validation F1 (patience 3); runs tracked with MLflow
+- **Metrics:** entity-level precision, recall and F1 with `seqeval` (strict IOB2: an entity counts only if both its boundaries and type are right)
+
+## Data
+
+There is no public annotated resume dataset in French and English, so the training data is **generated**:
+
+- A template-based generator (`src/data_generation/`) combines resume sentence patterns in English and French (headers, education, experience, skills lists) with lists of names, schools, companies, roles and skills. Tags are produced automatically, so the labels are exact.
+- Config: 10,000 sentences split 80/10/10 into train, validation and test.
+- **Hard cases:** 5 hand-annotated real-style resume snippets (`data/raw/manual_examples.json`) are oversampled ×200 and merged into the training set (`scripts/merge_dataset.py`), giving about 9,000 training sentences.
+
+Because the test sentences come from the same templates as the training data, scores on that test set measure how well the model learned the patterns. They don't measure performance on real, unseen resumes.
+
+## Evaluation
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/resume-ner-system.git
-cd resume-ner-system
+python scripts/evaluate.py
+```
 
-# Create virtual environment (optional but recommended)
+The script generates a fresh test set of 1,000 sentences with a fixed seed, runs the model, and writes entity-level precision, recall and F1 per entity type to `results/test_metrics.json`. Pass `--data path/to/file.json` to evaluate on your own annotated data instead.
+
+## Project structure
+
+```
+├── app/streamlit_app.py          # web interface
+├── src/
+│   ├── data_generation/          # templates, generator, augmentation
+│   ├── preprocessing/            # tokenizer + label alignment, dataset, section detection
+│   ├── models/                   # BERT, BERT+CRF (and a BiLSTM baseline architecture)
+│   ├── training/                 # training config and loop (early stopping, MLflow)
+│   ├── evaluation/               # seqeval metrics, error analysis
+│   └── inference/                # predictor, PDF parsing, post-processing, visualization
+├── scripts/
+│   ├── generate_dataset.py       # create train/val/test data
+│   ├── merge_dataset.py          # add oversampled hard cases
+│   ├── train_bert.py             # train BERT or BERT+CRF
+│   ├── evaluate.py               # entity-level evaluation
+│   ├── process_pdf.py            # batch PDF extraction (JSON, CSV, TXT, HTML)
+│   ├── smoke_test_model.py       # quick prediction check on a sample resume
+│   └── inspect_hard_cases.py     # print predictions on the hard cases
+├── models/checkpoints/bert_crf/  # trained weights (Git LFS) + label mappings
+├── data/raw/manual_examples.json # hand-annotated hard cases
+├── tests/                        # unit tests (no model weights needed)
+├── docs/                         # setup and PDF processing guides
+└── config.yaml                   # labels, paths, dataset settings
+```
+
+## Getting started
+
+```bash
+git clone https://github.com/Mohamed-jarboui/resume-ner-bert.git
+cd resume-ner-bert
+git lfs install && git lfs pull      # downloads the trained model (~700 MB)
+
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
+source venv/bin/activate             # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 2. Generate Dataset
+For scanned PDFs, install Tesseract OCR (see [docs/setup.md](docs/setup.md)).
 
-```bash
-python scripts/generate_dataset.py
-```
-
-This will create 4,000 annotated resume sentences and save them in multiple formats.
-
-### 3. Train BERT Model
-
-```bash
-python scripts/train_bert.py
-```
-
-Training takes approximately 15-20 minutes on GPU (or 1-2 hours on CPU). The best model will be saved to `models/checkpoints/bert/best_model.pt`.
-
-### 4. Launch Interactive UI
+**Run the web app**
 
 ```bash
 streamlit run app/streamlit_app.py
 ```
 
-The web interface will open at `http://localhost:8501`.
+**Process PDFs from the command line**
 
-## 📊 Dataset
-
-### Statistics
-
-- **Total Sentences**: 4,000 (Train: 2,800 | Val: 600 | Test: 600)
-- **Entity Distribution**: 
-  - Skills: ~40%
-  - Degrees: ~30%
-  - Experience: ~30%
-- **Format**: BIO tagging (B-SKILL, I-SKILL, B-DEGREE, I-DEGREE, B-EXPERIENCE, I-EXPERIENCE, O)
-- **Exports**: JSON, CSV, CoNLL
-
-### Sample Annotation
-
-```
-Tokens: ['Proficient', 'in', 'Python', ',', 'Java', ',', 'and', 'JavaScript', '.']
-Tags:   ['O', 'O', 'B-SKILL', 'O', 'B-SKILL', 'O', 'O', 'B-SKILL', 'O']
+```bash
+python scripts/process_pdf.py resume.pdf --output results
+python scripts/process_pdf.py resumes/ --batch --ocr
 ```
 
-## 🧠 Model Architecture
-
-### BERT NER Model
-
-- **Base Model**: `bert-base-uncased` (110M parameters)
-- **Architecture**: BERT encoder + Token classification head
-- **Training**: Fine-tuned with AdamW optimizer
-- **Hyperparameters**:
-  - Learning rate: 5e-5
-  - Batch size: 16
-  - Max epochs: 10
-  - Early stopping patience: 3
-
-### BiLSTM Baseline
-
-- **Architecture**: Embedding layer + Bidirectional LSTM + Linear classifier
-- **Embeddings**: 100-dimensional (can use GloVe pretrained)
-- **Hidden size**: 256
-- **Layers**: 2
-
-## 📈 Results
-
-### BERT Model Performance
-
-| Metric     | Precision | Recall | F1 Score |
-|------------|-----------|--------|----------|
-| **SKILL**     | 0.88      | 0.85   | **0.86** |
-| **DEGREE**    | 0.90      | 0.87   | **0.88** |
-| **EXPERIENCE**| 0.85      | 0.83   | **0.84** |
-| **Overall**   | 0.88      | 0.85   | **0.86** |
-
-### Model Comparison
-
-| Model  | F1 Score | Training Time | Parameters |
-|--------|----------|---------------|------------|
-| BiLSTM | 0.73     | ~5 min        | ~2M        |
-| BERT   | **0.86** | ~15 min       | ~110M      |
-
-**BERT achieves 18% improvement over BiLSTM baseline.**
-
-## 🔬 Evaluation
-
-### Entity-Level Metrics
-
-The system uses **seqeval** for proper NER evaluation, which considers:
-- Exact entity boundary matching
-- Entity type correctness
-- Partial matches as errors
-
-### Error Analysis
-
-Common errors include:
-- **False Positives**: Generic words misclassified as skills
-- **False Negatives**: Rare or abbreviated entities missed
-- **Boundary Errors**: Incorrect entity span detection
-
-## 💻 Usage Examples
-
-### Python API
+**Use it from Python**
 
 ```python
 from src.inference.predictor import ResumeNERPredictor
 
-# Load model
 predictor = ResumeNERPredictor(
-    model_path="models/checkpoints/bert/best_model.pt",
-    label_mappings_path="models/checkpoints/bert/label_mappings.json"
+    model_path="models/checkpoints/bert_crf/best_model.pt",
+    label_mappings_path="models/checkpoints/bert_crf/label_mappings.json",
 )
-
-# Extract entities
-text = "Experienced Python developer with Master's degree in Computer Science."
-entities = predictor.predict(text)
-
-for entity in entities:
-    print(f"{entity['type']}: {entity['entity']}")
+print(predictor.get_structured_json("Sarah Johnson | Paris, France\nData Scientist at Google (2021-2024)\nSkills: Python, SQL"))
 ```
 
-### Streamlit UI
+**Retrain from scratch**
 
-The interactive interface provides:
-- Resume text input
-- Real-time entity extraction
-- Color-coded visualization
-- Entity summary table
-- Example resumes
+```bash
+python scripts/generate_dataset.py
+python scripts/merge_dataset.py
+python scripts/train_bert.py --use_crf --train_data train_hybrid.json
+mlflow ui    # view runs at http://localhost:5000
+```
 
-## 🛠️ Configuration
+**Run the tests**
 
-Edit `config.yaml` to customize:
-- Dataset size and split ratios
-- Model hyperparameters
-- Training settings
-- File paths
+```bash
+pip install -r requirements-dev.txt
+pytest tests -v
+```
 
-## 📚 Academic References
+## Limitations and next steps
 
-1. **BERT**: Devlin et al., "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding" (2019)
-2. **NER Evaluation**: Tjong Kim Sang & De Meulder, "Introduction to the CoNLL-2003 Shared Task" (2003)
-3. **BiLSTM-CRF**: Lample et al., "Neural Architectures for Named Entity Recognition" (2016)
-
-
----
-
-**Developed for Advanced NLP Academic Evaluation.**
+- Trained on synthetic sentences; real resumes have more varied layouts and wording. The next step is to annotate a set of real resumes for training and an honest test set.
+- Each model call reads at most 128 tokens. The section mode of the app runs the model per section, but whole-text mode and the PDF command line tag only the start of long resumes. Sliding-window inference would fix this.
+- Corrections collected through the UI are saved but not yet used for automatic retraining.
+- Serve the model behind a REST API (FastAPI) and containerize it.

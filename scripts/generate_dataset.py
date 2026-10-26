@@ -4,6 +4,7 @@ Creates train, validation, and test splits with statistics.
 """
 
 import os
+import random
 import sys
 import json
 from pathlib import Path
@@ -33,6 +34,7 @@ def main():
     val_ratio = ratios["val"]
     test_ratio = ratios["test"]
     seed = dataset_cfg["random_seed"]
+    random.seed(seed)  # make the generated dataset reproducible
     
     # Create output directories
     raw_dir = project_root / config["paths"]["raw_data_dir"]

@@ -9,9 +9,9 @@ sys.path.append(str(project_root))
 
 from src.inference.predictor import ResumeNERPredictor
 
-def test_prediction():
-    model_path = "models/checkpoints/bert/best_model.pt"
-    mappings_path = "models/checkpoints/bert/label_mappings.json"
+def run_smoke_test():
+    model_path = "models/checkpoints/bert_crf/best_model.pt"
+    mappings_path = "models/checkpoints/bert_crf/label_mappings.json"
     
     print("🚀 Initializing Predictor...")
     predictor = ResumeNERPredictor(
@@ -53,4 +53,4 @@ def test_prediction():
     print(f"  - Sousse/Tunisie NOT as skill: {'✅' if not skill_as_location else '❌'}")
 
 if __name__ == "__main__":
-    test_prediction()
+    run_smoke_test()

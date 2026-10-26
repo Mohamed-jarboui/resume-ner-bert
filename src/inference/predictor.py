@@ -48,7 +48,12 @@ class ResumeNERPredictor:
             num_labels=len(self.id2label)
         )
         
-        # Load weights
+        # Load weights (a file of a few hundred bytes is a Git LFS pointer, not the model)
+        if os.path.getsize(model_path) < 1_000_000:
+            raise RuntimeError(
+                f"{model_path} is a Git LFS pointer, not the trained weights. "
+                "Run `git lfs install && git lfs pull` to download the model."
+            )
         checkpoint = torch.load(model_path, map_location=self.device)
         if hasattr(self.model, 'load_state_dict'):
             if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:

@@ -60,3 +60,9 @@ logs/
 # OS
 .DS_Store
 Thumbs.db
+
+# Evaluation outputs
+results/
+
+# User corrections saved by the UI (may contain personal data)
+data/feedback/
