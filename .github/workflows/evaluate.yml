@@ -1,0 +1,46 @@
+name: Evaluate model
+
+# Manual run: Actions > Evaluate model > Run workflow
+on:
+  workflow_dispatch:
+    inputs:
+      n:
+        description: Number of generated test sentences
+        default: "1000"
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true   # downloads the trained weights
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies (CPU)
+        run: |
+          pip install torch==2.4.1 --index-url https://download.pytorch.org/whl/cpu
+          pip install "transformers==4.44.2" "numpy<2" pytorch-crf seqeval scikit-learn pyyaml tqdm
+
+      - name: Run evaluation
+        run: |
+          set -o pipefail
+          mkdir -p results
+          python scripts/evaluate.py --n ${{ inputs.n }} | tee results/summary.txt
+
+      - name: Show results
+        run: |
+          cat results/test_metrics.json
+          {
+            echo "## Evaluation results"
+            sed -n '/| Entity/,$p' results/summary.txt
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: evaluation-results
+          path: results/test_metrics.json
