@@ -35,6 +35,7 @@ jobs:
       - name: Show results
         run: |
           cat results/test_metrics.json
+          echo "::notice title=metrics::$(python -c 'import json;print(json.dumps(json.load(open("results/test_metrics.json"))))')"
           {
             echo "## Evaluation results"
             sed -n '/| Entity/,$p' results/summary.txt
