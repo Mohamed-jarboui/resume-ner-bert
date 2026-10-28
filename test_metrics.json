@@ -1,0 +1,53 @@
+{
+  "model": "models/checkpoints/bert_crf/best_model.pt",
+  "test_data": "1000 generated sentences (seed 2026)",
+  "sentences": 1000,
+  "unique_sentences": 984,
+  "precision": 0.9958615500376222,
+  "recall": 0.9958615500376222,
+  "f1": 0.9958615500376222,
+  "per_entity": {
+    "DATE": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 310
+    },
+    "DEGREE": {
+      "precision": 0.9753694581280788,
+      "recall": 0.972972972972973,
+      "f1": 0.974169741697417,
+      "support": 407
+    },
+    "EMAIL": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 194
+    },
+    "EXPERIENCE": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 570
+    },
+    "LOCATION": {
+      "precision": 0.9955555555555555,
+      "recall": 1.0,
+      "f1": 0.9977728285077951,
+      "support": 224
+    },
+    "NAME": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 194
+    },
+    "SKILL": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 759
+    }
+  }
+}

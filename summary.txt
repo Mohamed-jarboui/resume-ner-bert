@@ -1,0 +1,15 @@
+
+Test data: 1000 generated sentences (seed 2026) (984 unique)
+
+| Entity | Precision | Recall | F1 | Support |
+|---|---|---|---|---|
+| DATE | 1.000 | 1.000 | 1.000 | 310 |
+| DEGREE | 0.975 | 0.973 | 0.974 | 407 |
+| EMAIL | 1.000 | 1.000 | 1.000 | 194 |
+| EXPERIENCE | 1.000 | 1.000 | 1.000 | 570 |
+| LOCATION | 0.996 | 1.000 | 0.998 | 224 |
+| NAME | 1.000 | 1.000 | 1.000 | 194 |
+| SKILL | 1.000 | 1.000 | 1.000 | 759 |
+| **Overall** | 0.996 | 0.996 | 0.996 | |
+
+Saved to /home/runner/work/resume-ner-bert/resume-ner-bert/results/test_metrics.json
