@@ -65,7 +65,7 @@ Entity-level scores (seqeval, strict IOB2) of the trained BERT+CRF model on 1,00
 | EMAIL | 1.000 | 1.000 | 1.000 | 194 |
 | **Overall** | **0.996** | **0.996** | **0.996** | |
 
-**How to read this:** the test sentences come from the same templates and word lists as the training data, so a near-perfect score shows the model has learned those patterns, not that it reaches this level on real resumes. The only notable errors are on `DEGREE`, where school names and degree titles are sometimes split differently. A hand-annotated set of real resumes would be the honest next benchmark.
+**How to read this:** the test sentences come from the same templates and word lists as the training data, so a near-perfect score shows the model has learned those patterns, not that it reaches this level on real resumes. The only notable errors are on `DEGREE` (F1 0.974), the entity that covers both degree titles and school names. A hand-annotated set of real resumes would be the honest next benchmark.
 
 Reproduce with `python scripts/evaluate.py` (writes `results/test_metrics.json`), or pass `--data path/to/file.json` to evaluate on your own annotated data.
 
