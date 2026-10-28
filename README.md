@@ -50,15 +50,24 @@ There is no public annotated resume dataset in French and English, so the traini
 - Config: 10,000 sentences split 80/10/10 into train, validation and test.
 - **Hard cases:** 5 hand-annotated real-style resume snippets (`data/raw/manual_examples.json`) are oversampled ×200 and merged into the training set (`scripts/merge_dataset.py`), giving about 9,000 training sentences.
 
-Because the test sentences come from the same templates as the training data, scores on that test set measure how well the model learned the patterns. They don't measure performance on real, unseen resumes.
+## Results
 
-## Evaluation
+Entity-level scores (seqeval, strict IOB2) of the trained BERT+CRF model on 1,000 freshly generated test sentences (seed 2026, 984 unique), computed by `scripts/evaluate.py` in the [Evaluate model](.github/workflows/evaluate.yml) workflow:
 
-```bash
-python scripts/evaluate.py
-```
+| Entity | Precision | Recall | F1 | Support |
+|---|---|---|---|---|
+| SKILL | 1.000 | 1.000 | 1.000 | 759 |
+| EXPERIENCE | 1.000 | 1.000 | 1.000 | 570 |
+| DEGREE | 0.975 | 0.973 | 0.974 | 407 |
+| DATE | 1.000 | 1.000 | 1.000 | 310 |
+| LOCATION | 0.996 | 1.000 | 0.998 | 224 |
+| NAME | 1.000 | 1.000 | 1.000 | 194 |
+| EMAIL | 1.000 | 1.000 | 1.000 | 194 |
+| **Overall** | **0.996** | **0.996** | **0.996** | |
 
-The script generates a fresh test set of 1,000 sentences with a fixed seed, runs the model, and writes entity-level precision, recall and F1 per entity type to `results/test_metrics.json`. Pass `--data path/to/file.json` to evaluate on your own annotated data instead.
+**How to read this:** the test sentences come from the same templates and word lists as the training data, so a near-perfect score shows the model has learned those patterns, not that it reaches this level on real resumes. The only notable errors are on `DEGREE`, where school names and degree titles are sometimes split differently. A hand-annotated set of real resumes would be the honest next benchmark.
+
+Reproduce with `python scripts/evaluate.py` (writes `results/test_metrics.json`), or pass `--data path/to/file.json` to evaluate on your own annotated data.
 
 ## Project structure
 
