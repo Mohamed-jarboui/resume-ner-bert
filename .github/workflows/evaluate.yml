@@ -2,11 +2,17 @@ name: Evaluate model
 
 # Manual run: Actions > Evaluate model > Run workflow
 on:
+  push:
+    branches: [main]
+    paths: [".github/workflows/evaluate.yml", "scripts/evaluate.py"]
   workflow_dispatch:
     inputs:
       n:
         description: Number of generated test sentences
         default: "1000"
+
+permissions:
+  contents: write   # push the results branch
 
 jobs:
   evaluate:
@@ -30,7 +36,7 @@ jobs:
         run: |
           set -o pipefail
           mkdir -p results
-          python scripts/evaluate.py --n ${{ inputs.n }} | tee results/summary.txt
+          python scripts/evaluate.py --n ${{ inputs.n || '1000' }} | tee results/summary.txt
 
       - name: Show results
         run: |
@@ -45,3 +51,16 @@ jobs:
         with:
           name: evaluation-results
           path: results/test_metrics.json
+
+      - name: Push results to the 'results' branch
+        run: |
+          mkdir -p /tmp/out && cp results/test_metrics.json results/summary.txt /tmp/out/
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout --orphan results
+          git rm -rq --cached .
+          git clean -fdxq
+          cp /tmp/out/* .
+          git add -A
+          git commit -qm "Evaluation results (run ${{ github.run_id }})"
+          git push -f origin results
